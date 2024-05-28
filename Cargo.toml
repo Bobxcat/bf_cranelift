@@ -1,0 +1,20 @@
+[package]
+name = "bf_cranelift"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.86"
+cranelift = "0.108.1"
+cranelift-jit = "0.108.1"
+cranelift-module = "0.108.1"
+# os_str_bytes = "7.0.0"
+target-lexicon = "0.12.14"
+utf8-read = "0.4.0"
+
+[profile.dev]
+opt-level = 2
+
+[profile.test]
+opt-level = 3
+# lto = true
