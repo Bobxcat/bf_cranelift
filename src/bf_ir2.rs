@@ -189,9 +189,6 @@ pub enum BfIrTok {
 impl Display for BfIrTok {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            // BfIrTok::Set(n) => write!(f, "={n}")?,
-            // BfIrTok::Add(n) => write!(f, "+{n}")?,
-            // BfIrTok::PtrAdd(n) => write!(f, ">{n}")?,
             BfIrTok::Modify { adds, ptr_delta } => write!(
                 f,
                 "{}, >{ptr_delta}",
