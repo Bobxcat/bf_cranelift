@@ -6,8 +6,8 @@ use std::{
 
 use bf_cranelift::{
     bf::{BfParser, BfScope},
+    bf_ir,
     bf_ir::{BfIrScope, BfIrTok},
-    bf_ir2,
     interpret::Interpreter,
     io_utils::{self, void, ProgramIO, ReadIter, ReadIterNew},
     opt::peephole,
@@ -39,7 +39,7 @@ const AWIB_TARG: &str = "./bf_programs/target/awib-0.4_target.c";
 const EASY_OPT: &[u8] = include_bytes!("../bf_programs/EasyOpt.b");
 
 fn main() {
-    let p = bf_ir2::BfIrScope::parse_sl(TEST_1).unwrap();
+    let p = bf_ir::BfIrScope::parse_sl(TEST_1).unwrap();
     println!("{p}");
 
     return;

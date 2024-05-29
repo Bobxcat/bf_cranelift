@@ -37,6 +37,8 @@ impl PeepholePass for DataAddFold {
 
     #[inline]
     fn apply(&mut self, instructions: &[BfIrTok]) -> PeepholeApply {
+        return todo!();
+        #[cfg(not)]
         match instructions {
             [BfIrTok::Add(a), BfIrTok::Add(b), ..] => PeepholeApply::Replace {
                 count: 2,
@@ -57,6 +59,8 @@ impl PeepholePass for PtrAddFold {
 
     #[inline]
     fn apply(&mut self, instructions: &[BfIrTok]) -> PeepholeApply {
+        return todo!();
+        #[cfg(not)]
         // As far as measured, there's not much of a performance gain to folding more than 2 at once
         match instructions {
             [BfIrTok::PtrAdd(a), BfIrTok::PtrAdd(b), ..] => PeepholeApply::Replace {
@@ -77,31 +81,35 @@ pub struct LoopSet0;
 impl PeepholePass for LoopSet0 {
     #[inline]
     fn apply<'a, 'b>(&'a mut self, instructions: &'b [BfIrTok]) -> PeepholeApply {
-        let [BfIrTok::Loop(inner), ..] = instructions else {
-            return PeepholeApply::Pass;
-        };
+        return todo!();
+        #[cfg(not)]
+        {
+            let [BfIrTok::Loop(inner), ..] = instructions else {
+                return PeepholeApply::Pass;
+            };
 
-        // Only allowed if this is the only token in the scope
-        let [BfIrTok::Add(delta)] = &inner[..] else {
-            return PeepholeApply::Pass;
-        };
+            // Only allowed if this is the only token in the scope
+            let [BfIrTok::Add(delta)] = &inner[..] else {
+                return PeepholeApply::Pass;
+            };
 
-        // Does cell wrap from any value to `0` eventually, after enough additions (otherwise this could go on forever)
-        // In other words, does `delta` share a factor with `256` (is `delta` a multiple of `2`)
+            // Does cell wrap from any value to `0` eventually, after enough additions (otherwise this could go on forever)
+            // In other words, does `delta` share a factor with `256` (is `delta` a multiple of `2`)
 
-        let does_terminate = match delta.0 {
-            0 => false,
-            1 => true,
-            n => n % 2 == 0,
-        };
+            let does_terminate = match delta.0 {
+                0 => false,
+                1 => true,
+                n => n % 2 == 0,
+            };
 
-        if does_terminate {
-            PeepholeApply::Replace {
-                count: 1,
-                new: vec![BfIrTok::Set(0)],
+            if does_terminate {
+                PeepholeApply::Replace {
+                    count: 1,
+                    new: vec![BfIrTok::Set(0)],
+                }
+            } else {
+                PeepholeApply::Pass
             }
-        } else {
-            PeepholeApply::Pass
         }
     }
 }
@@ -117,6 +125,8 @@ impl PeepholePass for DataAddSetFold {
     }
     #[inline]
     fn apply<'a, 'b>(&'a mut self, instructions: &'b [BfIrTok]) -> PeepholeApply {
+        return todo!();
+        #[cfg(not)]
         match instructions {
             [BfIrTok::Add(_discard), BfIrTok::Set(y), ..] => PeepholeApply::Replace {
                 count: 2,

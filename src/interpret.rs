@@ -31,19 +31,31 @@ impl<IO: ProgramIO> RtData<IO> {
             let new_ins_ptr: usize;
 
             match ins {
-                BfIrTok::Set(n) => {
-                    self.modify_data(|_| Wrapping(*n));
-                    new_ins_ptr = ins_ptr + 1;
-                }
-                BfIrTok::Add(n) => {
-                    self.modify_data(|prev| Wrapping(prev.0.wrapping_add_signed(n.0)));
-                    new_ins_ptr = ins_ptr + 1;
-                }
-                BfIrTok::PtrAdd(delta) => {
-                    // We wrap `data_ptr` around
+                // BfIrTok::Set(n) => {
+                //     self.modify_data(|_| Wrapping(*n));
+                //     new_ins_ptr = ins_ptr + 1;
+                // }
+                // BfIrTok::Add(n) => {
+                //     self.modify_data(|prev| Wrapping(prev.0.wrapping_add_signed(n.0)));
+                //     new_ins_ptr = ins_ptr + 1;
+                // }
+                // BfIrTok::PtrAdd(delta) => {
+                //     // We wrap `data_ptr` around
+                //     self.data_ptr = self
+                //         .data_ptr
+                //         .checked_add_signed(*delta)
+                //         .unwrap_or(self.data.len() - 1)
+                //         % self.data.len();
+                //     new_ins_ptr = ins_ptr + 1;
+                // }
+                BfIrTok::Modify { adds, ptr_delta } => {
+                    for (offset, delta) in adds {
+                        todo!()
+                    }
+
                     self.data_ptr = self
                         .data_ptr
-                        .checked_add_signed(*delta)
+                        .checked_add_signed(*ptr_delta)
                         .unwrap_or(self.data.len() - 1)
                         % self.data.len();
                     new_ins_ptr = ins_ptr + 1;

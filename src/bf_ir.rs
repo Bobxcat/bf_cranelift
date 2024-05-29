@@ -1,5 +1,4 @@
-//! OLD VERSION
-
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display};
 use std::num::Wrapping;
 use std::ops::Deref;
@@ -32,19 +31,43 @@ impl BfIrScope {
         Self {
             toks: toks
                 .into_iter()
-                .map(|tok| match tok {
-                    BfTok::Read => BfIrTok::Read,
-                    BfTok::Write => BfIrTok::Write,
-                    BfTok::ValInc => BfIrTok::Add(Wrapping(1)),
-                    BfTok::ValDec => BfIrTok::Add(Wrapping(-1)),
-                    BfTok::PtrInc => BfIrTok::PtrAdd(1),
-                    BfTok::PtrDec => BfIrTok::PtrAdd(-1),
-                    BfTok::Loop(s) => {
-                        let s = Self::from_bf(s);
-                        BfIrTok::Loop(s)
+                .fold(vec![], |mut list, tok| {
+                    if let BfTok::Loop(s) = tok {
+                        list.push(BfIrTok::Loop(Self::from_bf(s)));
+                        return list;
+                    };
+                    if let BfTok::Read = tok {
+                        list.push(BfIrTok::Read);
+                        return list;
+                    };
+                    if let BfTok::Write = tok {
+                        list.push(BfIrTok::Write);
+                        return list;
+                    };
+
+                    match list.last() {
+                        Some(BfIrTok::Modify { .. }) => (),
+                        _ => list.push(BfIrTok::Modify {
+                            adds: HashMap::new(),
+                            ptr_delta: 0,
+                        }),
                     }
+
+                    let Some(BfIrTok::Modify { adds, ptr_delta }) = list.last_mut() else {
+                        unreachable!()
+                    };
+
+                    match tok {
+                        BfTok::ValInc => *adds.entry(*ptr_delta).or_default() += 1,
+                        BfTok::ValDec => *adds.entry(*ptr_delta).or_default() -= 1,
+                        BfTok::PtrInc => *ptr_delta += 1,
+                        BfTok::PtrDec => *ptr_delta -= 1,
+
+                        BfTok::Read | BfTok::Write | BfTok::Loop(..) => unreachable!(),
+                    };
+                    list
                 })
-                .collect(),
+                .into(),
         }
     }
     #[must_use]
@@ -152,20 +175,28 @@ impl Deref for BfIrScope {
 /// A cheaply clonable BFIR token
 #[derive(Debug, Clone)]
 pub enum BfIrTok {
-    Set(u8),
-    Add(Wrapping<i8>),
-    PtrAdd(isize),
-    Read,
+    /// A set of modifications to do onto the data buffer
+    Modify {
+        adds: HashMap<isize, Wrapping<i8>>,
+        /// The overall change to the `data_ptr` after all the adds are computed
+        ptr_delta: isize,
+    },
     Write,
+    Read,
     Loop(BfIrScope),
 }
 
 impl Display for BfIrTok {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BfIrTok::Set(n) => write!(f, "={n}")?,
-            BfIrTok::Add(n) => write!(f, "+{n}")?,
-            BfIrTok::PtrAdd(n) => write!(f, ">{n}")?,
+            BfIrTok::Modify { adds, ptr_delta } => write!(
+                f,
+                "{}, >{ptr_delta}",
+                adds.iter()
+                    .map(|(offset, delta)| { format!("{delta:+}@{offset}") })
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            )?,
             BfIrTok::Read => f.write_str(",")?,
             BfIrTok::Write => f.write_str(".")?,
             BfIrTok::Loop(lp) => f.write_fmt(format_args!(

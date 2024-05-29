@@ -88,13 +88,14 @@ fn build_scope<'a>(sc: BfIrScope, ctx: &mut BuildCtx, curr_block: Block, return_
 
     for tok in sc.as_ref() {
         match tok {
-            BfIrTok::Set(_) => todo!(),
-            BfIrTok::Add(delta) => {
-                let old = ctx.load_data(0);
-                let new = ctx.builder.ins().iadd_imm(old, i64::from(delta.0));
-                ctx.store_data(new, 0);
-            }
-            BfIrTok::PtrAdd(_) => todo!(),
+            // BfIrTok::Set(_) => todo!(),
+            // BfIrTok::Add(delta) => {
+            //     let old = ctx.load_data(0);
+            //     let new = ctx.builder.ins().iadd_imm(old, i64::from(delta.0));
+            //     ctx.store_data(new, 0);
+            // }
+            // BfIrTok::PtrAdd(_) => todo!(),
+            BfIrTok::Modify { adds, ptr_delta } => todo!(),
             BfIrTok::Read => todo!(),
             BfIrTok::Write => todo!(),
             BfIrTok::Loop(inner) => {
