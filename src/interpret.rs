@@ -21,6 +21,13 @@ impl<IO: ProgramIO> RtData<IO> {
         self.data[self.data_ptr] = f(self.data[self.data_ptr])
     }
 
+    fn data_ptr_offset(&self, offset: isize) -> usize {
+        self.data_ptr
+            .checked_add_signed(offset)
+            .unwrap_or(self.data.len() - 1)
+            % self.data.len()
+    }
+
     fn run_scope(&mut self, sc: BfIrScope) {
         let mut ins_ptr = 0;
 
@@ -50,14 +57,11 @@ impl<IO: ProgramIO> RtData<IO> {
                 // }
                 BfIrTok::Modify { adds, ptr_delta } => {
                     for (offset, delta) in adds {
-                        todo!()
+                        let p = self.data_ptr_offset(*offset);
+                        self.data[p].0 = self.data[p].0.wrapping_add_signed(delta.0);
                     }
 
-                    self.data_ptr = self
-                        .data_ptr
-                        .checked_add_signed(*ptr_delta)
-                        .unwrap_or(self.data.len() - 1)
-                        % self.data.len();
+                    self.data_ptr = self.data_ptr_offset(*ptr_delta);
                     new_ins_ptr = ins_ptr + 1;
                 }
                 BfIrTok::Read => {
@@ -69,11 +73,7 @@ impl<IO: ProgramIO> RtData<IO> {
                     new_ins_ptr = ins_ptr + 1;
                 }
                 BfIrTok::Write => {
-                    let mut to_write: u8 = 0;
-                    self.modify_data(|x| {
-                        to_write = x.0;
-                        x
-                    });
+                    let to_write = self.data[self.data_ptr].0;
                     self.stdio.write_all(&[to_write]).unwrap();
 
                     new_ins_ptr = ins_ptr + 1;

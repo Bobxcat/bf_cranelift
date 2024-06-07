@@ -39,10 +39,10 @@ const AWIB_TARG: &str = "./bf_programs/target/awib-0.4_target.c";
 const EASY_OPT: &[u8] = include_bytes!("../bf_programs/EasyOpt.b");
 
 fn main() {
-    let p = bf_ir::BfIrScope::parse_sl(TEST_1).unwrap();
-    println!("{p}");
+    // let p = bf_ir::BfIrScope::parse_sl(TEST_1).unwrap();
+    // println!("{p}");
 
-    return;
+    // return;
 
     opt_run(TEST_1, void());
     opt_run(

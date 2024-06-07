@@ -220,6 +220,8 @@ where
 }
 
 pub fn default_peephole_opt(toks: BfIrScope) -> BfIrScope {
+    return toks;
+
     let start = Instant::now();
 
     let toks = apply_pass_bench(toks, &mut DataAddFold);
