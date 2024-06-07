@@ -14,6 +14,8 @@ smol_str = "0.2.2"
 target-lexicon = "0.12.14"
 utf8-read = "0.4.0"
 wasmparser = "0.209.1"
+byte_chan_active = { git = "https://github.com/Bobxcat/byte_chan_active.git", rev = "07202b0caa07e35bd9c24d2eafd4d42eb8be6e72" }
+enum-map = "2.7.3"
 
 [profile.dev]
 opt-level = 2

@@ -3,39 +3,37 @@
 
 use std::{
     any::type_name,
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     io::{Read, Write},
     thread::{self, JoinHandle},
 };
 
 use bimap::BiHashMap;
+use byte_chan_active::{byte_chan, ByteRx, ByteTx};
 use smol_str::SmolStr;
 
-use crate::byte_chan::{self, ByteRx, ByteTx};
-pub struct BfImports {
-    //
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct BfImportId(u16);
 
-pub struct BfFunc {
-    id: BfFuncId,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct BfExportId(u16);
+
+pub struct BfImportHandler {
+    id: BfImportId,
     func: Box<dyn FnMut() -> ()>,
 }
 
-#[derive(Debug, Clone, Copy, Hash)]
-pub struct BfFuncId(pub u16);
-
-pub struct BfFuncs {
-    funcs: HashMap<BfFuncId, BfFunc>,
-    names: BiHashMap<BfFuncId, SmolStr>,
+pub struct BfImports {
+    funcs: HashMap<BfImportId, BfImportHandler>,
+    names: BiHashMap<BfImportId, SmolStr>,
 }
 
-pub struct BfModule {
-    //
+pub struct BfExports {
+    funcs: HashSet<BfImportId>,
+    names: BiHashMap<BfImportId, SmolStr>,
 }
 
-/// A trait describing a runner for a BF program in any format
-///
-///
+/// A trait describing a runner for a generic BF program
 pub trait BfRunner<Program: Send>: Send + 'static {
     type Res: Send;
 
@@ -58,8 +56,8 @@ where
 
 /// Metadata about a BF program
 struct BfLibMeta {
-    imports: BfFuncs,
-    exports: BfFuncs,
+    imports: BfImports,
+    exports: BfExports,
 }
 
 impl BfLibMeta {
@@ -86,8 +84,8 @@ where
     R: BfRunner<P> + 'static,
 {
     pub fn new(bfin: Stdin, bfout: Stdout, program: P, runner: R) -> Self {
-        let (runner_tx, rx) = byte_chan::bounded(10_000);
-        let (tx, runner_rx) = byte_chan::bounded(10_000);
+        let (runner_tx, rx) = byte_chan();
+        let (tx, runner_rx) = byte_chan();
 
         let runner_handle = thread::spawn(move || runner.run(program, runner_rx, runner_tx));
 
@@ -104,4 +102,5 @@ where
             meta,
         }
     }
+    // pub fn get_function(&self, name: impl AsRef<str>)
 }
